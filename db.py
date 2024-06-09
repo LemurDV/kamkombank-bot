@@ -76,3 +76,6 @@ class Database:
         self._get_cursor().execute('DELETE FROM Users WHERE user_id = ?', (user_id,))
         self._commit()
         print(f"{user_id} was deleted from DB")
+
+    def get_user(self, user_id):
+        return self._get_cursor().execute(f"SELECT * FROM users WHERE user_id = {user_id}").fetchone()

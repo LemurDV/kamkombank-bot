@@ -123,15 +123,28 @@ def validate_phone(phone):
 
 
 def final(message: Message):
-    send_user_info()
+    send_user_info(user_id=message.from_user.id)
     cleanup_db(user_id=message.from_user.id)
 
     # restart
     bot.register_next_step_handler(message, start)
 
 
-def send_user_info():
-    requests.post(url="", json={})
+def send_user_info(user_id: int):
+    user = db.get_user(user_id=user_id)
+    requests.post(
+        url="",
+        json={
+            "user_name": user[2],
+            "full_name": user[3],
+            "city": user[4],
+            "office": user[5],
+            "recall_place": user[6],
+            "image_bytes": user[7],
+            "phone": user[8],
+
+        },
+    )
 
 
 def cleanup_db(user_id: int):
