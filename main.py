@@ -71,8 +71,8 @@ def recall_place_choose(message: Message):
     bot.send_message(
         chat_id=message.chat.id,
         text=(
-        f"Выбрана площадка, на которой был размещен отзыв: {message.text} \nУкажите, пожалуйста, ваше ИМЯ, с которого "
-        "был опубликован отзыв."
+            f"Выбрана площадка, на которой был размещен отзыв: {message.text} \nУкажите, пожалуйста, ваше ИМЯ, "
+            f"с которого был опубликован отзыв."
         ),
     )
     bot.register_next_step_handler(message, full_name)
@@ -112,10 +112,10 @@ def validate_phone(phone):
     # Проверка на длину номера
     if len(digits_only) == 11 and digits_only.startswith('8'):
         # Если номер начинается с 8, заменить на +7
-        formatted_number = '+7' + digits_only[1:]
+        formatted_number = f"+7{digits_only[1:]}"
     elif len(digits_only) == 10:
         # Если номер состоит из 10 цифр, добавить +7 в начало
-        formatted_number = '+7' + digits_only
+        formatted_number = f"+7{digits_only}"
     else:
         formatted_number = None
 
