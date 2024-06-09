@@ -20,7 +20,7 @@ class Database:
         CREATE TABLE IF NOT EXISTS Users (
         id INTEGER PRIMARY KEY,
         username TEXT NOT NULL UNIQUE,
-        prone INTEGER
+        phone INTEGER
         )
         ''')
         self.connection.commit()
@@ -37,6 +37,6 @@ class Database:
         return self._get_cursor().execute(f"SELECT id from Users WHERE username = '{user_name}'").fetchone()
 
     def save_user_phone(self, phone: int, user_name: str):
-        self._get_cursor().execute('UPDATE Users SET prone = ? WHERE username = ?', (phone, user_name))
+        self._get_cursor().execute('UPDATE Users SET phone = ? WHERE username = ?', (phone, user_name))
         self._commit()
         print(f"{user_name} phone {phone} - was added in DB")
