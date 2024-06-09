@@ -26,7 +26,7 @@ class Database:
         office TEXT,
         recall_place TEXT,
         image_bytes TEXT,
-        phone INTEGER
+        phone TEXT
         )
         ''')
         self.connection.commit()
@@ -67,7 +67,7 @@ class Database:
         self._commit()
         print(f"{user_id} recall_place: {recall_place} - was added in DB")
 
-    def save_user_phone(self, user_id: int, phone: int):
+    def save_user_phone(self, user_id: int, phone: str):
         self._get_cursor().execute('UPDATE Users SET phone = ? WHERE user_id = ?', (phone, user_id))
         self._commit()
         print(f"{user_id} phone {phone} - was added in DB")

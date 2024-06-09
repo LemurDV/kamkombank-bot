@@ -4,6 +4,7 @@ from telebot.types import Message
 
 from db import Database
 import markups
+from settings import bonus_offices
 
 bot = TeleBot("token")
 db = Database()
@@ -12,36 +13,44 @@ db = Database()
 @bot.message_handler(commands=["start"])
 def start(message: Message):
     db.insert_user(user_id=message.from_user.id, user_name=message.from_user.username)
-    bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот")
+    # bot.edit_message_reply_markup(chat_id=message.chat.id, reply_markup=markups.some())
+    bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот", reply_markup=markups.some())
     bot.register_next_step_handler(message, photo_step)
 
 
 def photo_step(message: Message):
-    file_info = bot.get_file(message.photo[-1].file_id)
-    downloaded_file = bot.download_file(file_info.file_path)
-    db.save_photo(user_id=message.from_user.id, photo=str(downloaded_file))
+    if not message.photo:
+        bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот еще раз")
+        bot.register_next_step_handler(message, photo_step)
+    else:
+        file_info = bot.get_file(message.photo[-1].file_id)
+        downloaded_file = bot.download_file(file_info.file_path)
+        db.save_photo(user_id=message.from_user.id, photo=str(downloaded_file))
 
-    #
-    bot.send_message(
-        chat_id=message.chat.id,
-        text="Выберите город, в котором находится отделение банка.",
-        reply_markup=markups.make_city_markup(),
-    )
-    #
-    bot.register_next_step_handler(message, city_choose)
+        #
+        bot.send_message(
+            chat_id=message.chat.id,
+            text="Выберите город, в котором находится отделение банка.",
+            reply_markup=markups.make_city_markup(),
+        )
+        #
+        bot.register_next_step_handler(message, city_choose)
 
 
 def city_choose(message: Message):
     db.save_user_city(user_id=message.from_user.id, city=message.text)
-
-    #
-    bot.send_message(
-        chat_id=message.chat.id,
-        text="Выберите отделение банка:",
-        reply_markup=markups.make_office_markup(city=message.text),
-    )
-    #
-    bot.register_next_step_handler(message, office_choose)
+    if message.text not in bonus_offices:
+        bot.send_message(chat_id=message.chat.id, text="Выберите город из указанного списка")
+        bot.register_next_step_handler(message, city_choose)
+    else:
+        #
+        bot.send_message(
+            chat_id=message.chat.id,
+            text="Выберите отделение банка:",
+            reply_markup=markups.make_office_markup(city=message.text),
+        )
+        #
+        bot.register_next_step_handler(message, office_choose)
 
 
 def office_choose(message: Message):
@@ -79,14 +88,38 @@ def full_name(message: Message):
 
 
 def save_user_phone(message: Message):
-    db.save_user_phone(phone=int(message.text), user_id=message.from_user.id)
+    formatted_number = validate_phone(phone=message.text)
+    if formatted_number:
+        db.save_user_phone(phone=formatted_number, user_id=message.from_user.id)
+        bot.send_message(
+            chat_id=message.chat.id,
+            text="Данные успешно сохранены",
+            reply_markup=markups.markup_end_case(),
+        )
+        bot.register_next_step_handler(message, final)
+    else:
+        bot.edit_message_text(chat_id=message.chat.id, text="s")
+        bot.send_message(
+            chat_id=message.chat.id,
+            text="Не удалось преобразовать номер в нужный формат.",
+        )
+        bot.register_next_step_handler(message, save_user_phone)
 
-    bot.send_message(
-        chat_id=message.chat.id,
-        text="Данные успешно сохранены",
-        reply_markup=markups.markup_end_case(),
-    )
-    bot.register_next_step_handler(message, final)
+
+def validate_phone(phone):
+    digits_only = ''.join(filter(str.isdigit, phone))
+
+    # Проверка на длину номера
+    if len(digits_only) == 11 and digits_only.startswith('8'):
+        # Если номер начинается с 8, заменить на +7
+        formatted_number = '+7' + digits_only[1:]
+    elif len(digits_only) == 10:
+        # Если номер состоит из 10 цифр, добавить +7 в начало
+        formatted_number = '+7' + digits_only
+    else:
+        formatted_number = None
+
+    return formatted_number
 
 
 def final(message: Message):
