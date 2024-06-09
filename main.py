@@ -3,7 +3,7 @@ from telebot.types import Message
 
 from db import Database
 
-bot = TeleBot("7235756365:AAFF3JDL3WLliwHP8NSODVgyJugOTvybyFI")
+bot = TeleBot("token")
 db = Database()
 
 
