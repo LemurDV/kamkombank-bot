@@ -19,10 +19,7 @@ def start(message: Message):
 
 def photo_step(message: Message):
     db.insert_user(user_id=message.from_user.id, user_name=message.from_user.username)
-    if not message.photo:
-        bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот еще раз")
-        bot.register_next_step_handler(message, photo_step)
-    else:
+    if message.photo:
         file_info = bot.get_file(message.photo[-1].file_id)
         downloaded_file = bot.download_file(file_info.file_path)
         db.save_photo(user_id=message.from_user.id, photo=str(downloaded_file))
@@ -35,6 +32,9 @@ def photo_step(message: Message):
         )
         #
         bot.register_next_step_handler(message, city_choose)
+    else:
+        bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот еще раз")
+        bot.register_next_step_handler(message, photo_step)
 
 
 def city_choose(message: Message):
