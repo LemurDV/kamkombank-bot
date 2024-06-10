@@ -13,12 +13,12 @@ db = Database()
 @bot.message_handler(commands=["start"])
 def start(message: Message):
     db.insert_user(user_id=message.from_user.id, user_name=message.from_user.username)
-    # bot.edit_message_reply_markup(chat_id=message.chat.id, reply_markup=markups.some())
-    bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот", reply_markup=markups.some())
+    bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот")
     bot.register_next_step_handler(message, photo_step)
 
 
 def photo_step(message: Message):
+    db.insert_user(user_id=message.from_user.id, user_name=message.from_user.username)
     if not message.photo:
         bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот еще раз")
         bot.register_next_step_handler(message, photo_step)
@@ -124,8 +124,7 @@ def validate_phone(phone):
 
 def final(message: Message):
     send_user_info(user_id=message.from_user.id)
-    cleanup_db(user_id=message.from_user.id)
-
+    db.delete_user(user_id=message.from_user.id)
     # restart
     bot.register_next_step_handler(message, start)
 
@@ -145,10 +144,6 @@ def send_user_info(user_id: int):
 
         },
     )
-
-
-def cleanup_db(user_id: int):
-    db.delete_user(user_id=user_id)
 
 
 if __name__ == '__main__':

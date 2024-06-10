@@ -42,7 +42,3 @@ def markup_end_case():
     button2 = types.KeyboardButton("Завершить диалог с ботом")
     markup.add(button1, button2)
     return markup
-
-
-def some():
-    markup = types.ReplyKeyboardRemove(selective=False)
