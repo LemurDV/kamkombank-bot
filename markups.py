@@ -35,6 +35,10 @@ def make_recall_place():
     markup.add(button1, button2, button3, button4, button5, button6)
     return markup
 
+def make_button_false():
+    markup = types.ReplyKeyboardMarkup(selective=False)
+    return markup
+
 
 def markup_end_case():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)

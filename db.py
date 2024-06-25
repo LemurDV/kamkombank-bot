@@ -32,14 +32,14 @@ class Database:
         self.connection.commit()
 
     def insert_user(self, user_id: int, user_name: str):
-        if self._user_in_db(user_id=user_id):
+        if self.user_in_db(user_id=user_id):
             print(f"User {user_name} already in db")
             return
         self._get_cursor().execute('INSERT INTO Users (user_id, username) VALUES (?, ?)', (user_id, user_name,))
         self._commit()
         print(f"{user_name} - was added in DB")
 
-    def _user_in_db(self, user_id: int) -> bool:
+    def user_in_db(self, user_id: int) -> bool:
         return self._get_cursor().execute(f"SELECT id from Users WHERE user_id = '{user_id}'").fetchone()
 
     def save_photo(self, user_id: int, photo: str):

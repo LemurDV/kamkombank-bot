@@ -5,6 +5,8 @@ from telebot.types import Message
 from db import Database
 import markups
 from settings import bonus_offices
+import tempfile
+import os
 
 bot = TeleBot("token")
 db = Database()
@@ -14,7 +16,9 @@ db = Database()
 def start(message: Message):
     db.insert_user(user_id=message.from_user.id, user_name=message.from_user.username)
     # bot.edit_message_reply_markup(chat_id=message.chat.id, reply_markup=markups.some())
-    bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот", reply_markup=markups.some())
+
+    # bot.send_message(chat_id=message.chat.id, text="Что может этот бот? Этот бот поможет вам получить свое вознаграждение за оставленный отзыв о Камкомбанке на площадках: Яндекс.Карты, 2ГИС, Сравни.ру, Bankiros, Банки.ру.", reply_markup=markups.some())
+    bot.send_message(chat_id=message.chat.id, text="Отправьте скриншот отзыва")
     bot.register_next_step_handler(message, photo_step)
 
 
@@ -25,7 +29,7 @@ def photo_step(message: Message):
     else:
         file_info = bot.get_file(message.photo[-1].file_id)
         downloaded_file = bot.download_file(file_info.file_path)
-        db.save_photo(user_id=message.from_user.id, photo=str(downloaded_file))
+        db.save_photo(user_id=message.from_user.id, photo=downloaded_file)
 
         #
         bot.send_message(
@@ -74,6 +78,7 @@ def recall_place_choose(message: Message):
         f"Выбрана площадка, на которой был размещен отзыв: {message.text} \nУкажите, пожалуйста, ваше ИМЯ, с которого "
         "был опубликован отзыв."
         ),
+        reply_markup=markups.make_button_false(),
     )
     bot.register_next_step_handler(message, full_name)
 
@@ -117,7 +122,7 @@ def validate_phone(phone):
         # Если номер состоит из 10 цифр, добавить +7 в начало
         formatted_number = '+7' + digits_only
     else:
-        formatted_number = None
+        formatted_number = digits_only
 
     return formatted_number
 
@@ -132,19 +137,25 @@ def final(message: Message):
 
 def send_user_info(user_id: int):
     user = db.get_user(user_id=user_id)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+        tmp_file.write(user[7])
+        tmp_file_path = tmp_file.name
+
     requests.post(
-        url="",
-        json={
+        url="http://localhost:8022/lead",
+        data={
             "user_name": user[2],
             "full_name": user[3],
             "city": user[4],
             "office": user[5],
             "recall_place": user[6],
-            "image_bytes": user[7],
             "phone": user[8],
-
         },
+        files={
+            "image_bytes": open(tmp_file_path, 'rb')
+        }
     )
+    os.remove(tmp_file_path)
 
 
 def cleanup_db(user_id: int):
