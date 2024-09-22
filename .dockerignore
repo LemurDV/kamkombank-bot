@@ -1,0 +1,6 @@
+venv
+
+__pycache
+
+*.db
+db/*.db

@@ -1,0 +1,16 @@
+services:
+  kamkom-chat-bot:
+    build:
+      context: .
+      target: run
+    volumes:
+      - kamkom-chat-volume:/app/db
+    restart: always
+
+volumes:
+  kamkom-chat-volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/kamkom/kamkom-chatbot-volume
